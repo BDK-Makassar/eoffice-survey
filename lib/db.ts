@@ -16,7 +16,9 @@ if (!connectionString) {
 }
 console.log("[db] connectionString:", maskConnectionString(connectionString));
 
-const sql = connectionString ? neon(connectionString) : (null as any);
+const sql = connectionString
+  ? neon(connectionString, { fetchOptions: { cache: "no-store" } })
+  : (null as any);
 
 function requireDb() {
   if (!sql) {
