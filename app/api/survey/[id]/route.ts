@@ -19,7 +19,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       );
       return NextResponse.json({ error: "Kuesioner tidak ditemukan atau belum aktif" }, { status: 404 });
     }
-    const [questions, users] = await Promise.all([getQuestions(id), listUsers()]);
+    const questions = await getQuestions(id);
+    const users = await listUsers();
     console.log(
       `[api/survey/${params.id}] sukses -> ${questions.length} pertanyaan, ${users.length} user`
     );
