@@ -13,15 +13,22 @@ function parseCsv(text: string): string[][] {
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAuthorized(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const authorized = isAuthorized(req);
+  console.log(`[api/admin/users/import] POST masuk, authorized=${authorized}`);
+  if (!authorized) {
+    console.log(`[api/admin/users/import] berhenti di sini -> Unauthorized`);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const body = await req.json();
   const csv: string = body.csv || "";
   if (!csv.trim()) {
+    console.log(`[api/admin/users/import] berhenti di sini -> CSV kosong`);
     return NextResponse.json({ error: "File CSV kosong" }, { status: 400 });
   }
 
   const rows = parseCsv(csv);
   if (rows.length === 0) {
+    console.log(`[api/admin/users/import] berhenti di sini -> tidak ada baris data`);
     return NextResponse.json({ error: "Tidak ada baris data" }, { status: 400 });
   }
 
@@ -31,6 +38,7 @@ export async function POST(req: NextRequest) {
   const jabatanIdx = header.indexOf("jabatan");
 
   if (namaIdx === -1 || nipIdx === -1) {
+    console.log(`[api/admin/users/import] berhenti di sini -> header CSV tidak punya kolom nama/nip`, header);
     return NextResponse.json(
       { error: "Header CSV harus memiliki kolom 'nama' dan 'nip' (jabatan opsional)" },
       { status: 400 }
@@ -58,5 +66,8 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  console.log(
+    `[api/admin/users/import] sukses -> ${created}/${dataRows.length} diproses, ${errors.length} error`
+  );
   return NextResponse.json({ processed: created, total: dataRows.length, errors });
 }

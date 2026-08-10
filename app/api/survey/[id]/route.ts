@@ -25,7 +25,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     );
     return NextResponse.json({ questionnaire, questions, users });
   } catch (err: any) {
-    console.error(`[api/survey/${params.id}] error:`, err.message, err.stack);
+    console.log(`[api/survey/${params.id}] error:`, err.message, err.stack);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -10,8 +10,8 @@ function maskConnectionString(url?: string) {
 }
 
 if (!connectionString) {
-  console.warn(
-    "DATABASE_URL belum diset — aplikasi tidak akan bisa menyimpan data. Lihat README.md."
+  console.log(
+    "[db] DATABASE_URL belum diset — aplikasi tidak akan bisa menyimpan data. Lihat README.md."
   );
 }
 console.log("[db] connectionString:", maskConnectionString(connectionString));
@@ -94,6 +94,7 @@ export async function createUser(u: UserDef) {
     INSERT INTO users (nama, nip, jabatan) VALUES (${u.nama}, ${u.nip}, ${u.jabatan})
     RETURNING id, nama, nip, jabatan;
   `;
+  console.log(`[db] createUser(${u.nip}) ->`, rows[0]);
   return rows[0];
 }
 
@@ -104,12 +105,14 @@ export async function updateUser(id: number, u: UserDef) {
     WHERE id = ${id}
     RETURNING id, nama, nip, jabatan;
   `;
+  console.log(`[db] updateUser(${id}) ->`, rows[0] || "tidak ada baris ter-update");
   return rows[0];
 }
 
 export async function deleteUser(id: number) {
   await ensureSchema();
   await sql`DELETE FROM users WHERE id = ${id};`;
+  console.log(`[db] deleteUser(${id}) -> selesai`);
 }
 
 export async function upsertUserByNip(u: UserDef) {
@@ -119,6 +122,7 @@ export async function upsertUserByNip(u: UserDef) {
     ON CONFLICT (nip) DO UPDATE SET nama = EXCLUDED.nama, jabatan = EXCLUDED.jabatan
     RETURNING id, nama, nip, jabatan;
   `;
+  console.log(`[db] upsertUserByNip(${u.nip}) ->`, rows[0]);
   return rows[0];
 }
 
