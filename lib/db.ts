@@ -9,6 +9,7 @@ if (!connectionString) {
     "DATABASE_URL belum diset — aplikasi tidak akan bisa menyimpan data. Lihat README.md."
   );
 }
+console.log(connectionString,'inidia');
 
 const sql = connectionString ? neon(connectionString) : (null as any);
 
