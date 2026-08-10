@@ -5,11 +5,18 @@ import { listUsers, createUser } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  if (!isAuthorized(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const authorized = isAuthorized(req);
+  console.log(`[api/admin/users] GET masuk, authorized=${authorized}`);
+  if (!authorized) {
+    console.log(`[api/admin/users] berhenti di sini -> Unauthorized, users TIDAK ditarik`);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const users = await listUsers();
+    console.log(`[api/admin/users] sukses -> ${users.length} user`);
     return NextResponse.json({ users });
   } catch (err: any) {
+    console.error(`[api/admin/users] error:`, err.message, err.stack);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

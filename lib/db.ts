@@ -4,12 +4,17 @@ import type { QuestionDef, UserDef, QuestionnaireDef, AnswerInput } from "./type
 const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 export const usingDatabase = !!connectionString;
 
+function maskConnectionString(url?: string) {
+  if (!url) return "(kosong)";
+  return url.replace(/:\/\/([^:]+):([^@]+)@/, "://$1:****@");
+}
+
 if (!connectionString) {
   console.warn(
     "DATABASE_URL belum diset — aplikasi tidak akan bisa menyimpan data. Lihat README.md."
   );
 }
-console.log(connectionString,'inidia');
+console.log("[db] connectionString:", maskConnectionString(connectionString));
 
 const sql = connectionString ? neon(connectionString) : (null as any);
 
@@ -79,6 +84,7 @@ export async function ensureSchema() {
 export async function listUsers(): Promise<UserDef[]> {
   await ensureSchema();
   const rows = await sql`SELECT id, nama, nip, jabatan FROM users ORDER BY nama ASC;`;
+  console.log(`[db] listUsers() -> ${rows.length} baris`);
   return rows as unknown as UserDef[];
 }
 
@@ -139,6 +145,10 @@ export async function listActiveQuestionnaires() {
 export async function getQuestionnaire(id: number) {
   await ensureSchema();
   const rows = await sql`SELECT * FROM questionnaires WHERE id = ${id};`;
+  console.log(
+    `[db] getQuestionnaire(${id}) ->`,
+    rows[0] ? { id: rows[0].id, is_active: rows[0].is_active } : "tidak ditemukan"
+  );
   return rows[0] || null;
 }
 
@@ -173,6 +183,7 @@ export async function getQuestions(questionnaireId: number): Promise<QuestionDef
   const rows = await sql`
     SELECT * FROM questions WHERE questionnaire_id = ${questionnaireId} ORDER BY order_index ASC, id ASC;
   `;
+  console.log(`[db] getQuestions(${questionnaireId}) -> ${rows.length} baris`);
   return (rows as any[]).map((r) => ({
     ...r,
     options: r.options ? JSON.parse(r.options) : null,
