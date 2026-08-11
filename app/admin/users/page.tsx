@@ -14,6 +14,8 @@ export default function UsersPage() {
   const [importing, setImporting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ nama: "", nip: "", jabatan: "" });
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function load() {
@@ -21,6 +23,7 @@ export default function UsersPage() {
     const res = await adminFetch("/api/admin/users");
     const json = await res.json();
     setUsers(json.users || []);
+    setSelectedIds(new Set());
     setLoading(false);
   }
 
@@ -53,6 +56,38 @@ export default function UsersPage() {
   async function handleDelete(id: number) {
     if (!confirm("Hapus pengguna ini? Jawaban survei terkait juga akan terhapus.")) return;
     await adminFetch(`/api/admin/users/${id}`, { method: "DELETE" });
+    load();
+  }
+
+  function toggleSelect(id: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) =>
+      prev.size === users.length ? new Set() : new Set(users.map((u) => u.id!))
+    );
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.size === 0) return;
+    if (
+      !confirm(
+        `Hapus ${selectedIds.size} pengguna terpilih? Jawaban survei terkait juga akan terhapus.`
+      )
+    )
+      return;
+    setBulkDeleting(true);
+    await Promise.all(
+      Array.from(selectedIds).map((id) => adminFetch(`/api/admin/users/${id}`, { method: "DELETE" }))
+    );
+    setBulkDeleting(false);
+    setSelectedIds(new Set());
     load();
   }
 
@@ -176,9 +211,38 @@ export default function UsersPage() {
       </div>
 
       <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        {selectedIds.size > 0 && (
+          <div className="flex items-center justify-between border-b border-slate-200 bg-brand-50 px-4 py-2.5">
+            <p className="text-xs font-medium text-brand-800">{selectedIds.size} pengguna dipilih</p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                className="text-xs font-medium text-slate-500 hover:underline"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {bulkDeleting ? "Menghapus..." : "Hapus Terpilih"}
+              </button>
+            </div>
+          </div>
+        )}
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase text-slate-500">
             <tr>
+              <th className="w-10 px-4 py-3">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-brand-600"
+                  checked={users.length > 0 && selectedIds.size === users.length}
+                  onChange={toggleSelectAll}
+                  aria-label="Pilih semua"
+                />
+              </th>
               <th className="px-4 py-3">Nama</th>
               <th className="px-4 py-3">NIP</th>
               <th className="px-4 py-3">Jabatan</th>
@@ -188,19 +252,31 @@ export default function UsersPage() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
                   Memuat...
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-slate-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
                   Belum ada pengguna.
                 </td>
               </tr>
             ) : (
               users.map((u) => (
-                <tr key={u.id} className="border-t border-slate-100">
+                <tr
+                  key={u.id}
+                  className={`border-t border-slate-100 ${selectedIds.has(u.id!) ? "bg-brand-50/50" : ""}`}
+                >
+                  <td className="px-4 py-2.5">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-brand-600"
+                      checked={selectedIds.has(u.id!)}
+                      onChange={() => toggleSelect(u.id!)}
+                      aria-label={`Pilih ${u.nama}`}
+                    />
+                  </td>
                   {editingId === u.id ? (
                     <>
                       <td className="px-4 py-2">
