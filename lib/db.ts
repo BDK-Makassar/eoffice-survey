@@ -157,7 +157,10 @@ export async function listQuestionnaires() {
 export async function listActiveQuestionnaires() {
   await ensureSchema();
   const rows = await sql`
-    SELECT id, title, description FROM questionnaires WHERE is_active = true ORDER BY created_at DESC;
+    SELECT q.id, q.title, q.description,
+      (SELECT COUNT(*) FROM responses WHERE questionnaire_id = q.id)::int AS response_count,
+      (SELECT COUNT(*) FROM users)::int AS total_users
+    FROM questionnaires q WHERE q.is_active = true ORDER BY q.created_at DESC;
   `;
   return rows;
 }

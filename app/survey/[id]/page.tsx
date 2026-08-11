@@ -125,6 +125,12 @@ export default function SurveyPage() {
           </div>
           <h1 className="text-xl font-semibold text-slate-900">Terima kasih, {selectedUser?.nama}!</h1>
           <p className="mt-2 text-sm text-slate-600">Jawaban Anda untuk &ldquo;{meta?.title}&rdquo; telah tersimpan.</p>
+          <a
+            href="/"
+            className="mt-6 inline-block w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
+          >
+            Kembali ke Halaman Utama
+          </a>
         </div>
       </main>
     );

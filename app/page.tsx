@@ -6,6 +6,8 @@ interface QItem {
   id: number;
   title: string;
   description: string;
+  response_count: number;
+  total_users: number;
 }
 
 export default function HomePage() {
@@ -32,7 +34,7 @@ export default function HomePage() {
         administratif internal BDK Makassar.
       </p>
 
-      <div className="mt-8 space-y-3">
+      <div className="mt-8 space-y-4">
         {loading ? (
           <p className="text-sm text-slate-400">Memuat...</p>
         ) : items.length === 0 ? (
@@ -40,16 +42,72 @@ export default function HomePage() {
             Belum ada kuesioner yang aktif saat ini.
           </p>
         ) : (
-          items.map((q) => (
-            <a
-              key={q.id}
-              href={`/survey/${q.id}`}
-              className="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-400 hover:shadow-md"
-            >
-              <p className="font-semibold text-slate-900">{q.title}</p>
-              {q.description && <p className="mt-1 text-sm text-slate-500">{q.description}</p>}
-            </a>
-          ))
+          items.map((q) => {
+            const total = q.total_users || 0;
+            const filled = q.response_count || 0;
+            const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+            return (
+              <a
+                key={q.id}
+                href={`/survey/${q.id}`}
+                className="group relative block overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-400 hover:shadow-lg"
+              >
+                <div className="absolute inset-x-0 top-0 h-1 bg-slate-100">
+                  <div
+                    className="h-full bg-gradient-to-r from-brand-500 to-brand-600 transition-all"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+
+                <div className="flex items-start justify-between gap-3 pt-1.5">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900 group-hover:text-brand-700">
+                      {q.title}
+                    </p>
+                    {q.description && (
+                      <p className="mt-1 text-sm text-slate-500">{q.description}</p>
+                    )}
+                  </div>
+                  <svg
+                    className="mt-1 h-5 w-5 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand-500"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path d="M9 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <svg className="h-3.5 w-3.5 text-slate-400" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M15 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM23 20v-1a4 4 0 0 0-3-3.87M17 4.13a4 4 0 0 1 0 7.75"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span>
+                      <span className="font-semibold text-slate-700">{filled}</span> dari {total} telah
+                      mengisi
+                    </span>
+                  </div>
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      pct === 100
+                        ? "bg-green-100 text-green-700"
+                        : pct >= 50
+                        ? "bg-brand-100 text-brand-700"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {pct}%
+                  </span>
+                </div>
+              </a>
+            );
+          })
         )}
       </div>
     </main>
