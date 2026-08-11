@@ -201,9 +201,34 @@ export default function SurveyPage() {
         </p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{meta?.title}</h1>
         {meta?.description && <p className="mt-2 text-sm text-slate-600">{meta.description}</p>}
+
+        {questions.some((q) => q.type === "scale_1_5") && (
+          <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
+              Keterangan Skala 1–5
+            </p>
+            <div className="mt-2 grid grid-cols-1 gap-1.5 text-xs text-brand-900 sm:grid-cols-5 sm:gap-2">
+              {[
+                { n: 1, label: "Sangat Kurang" },
+                { n: 2, label: "Kurang" },
+                { n: 3, label: "Cukup" },
+                { n: 4, label: "Baik" },
+                { n: 5, label: "Sangat Baik" },
+              ].map((s) => (
+                <div key={s.n} className="flex items-center gap-1.5 sm:flex-col sm:items-center sm:gap-1 sm:text-center">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-[11px] font-semibold text-white">
+                    {s.n}
+                  </span>
+                  <span>{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <button
           onClick={() => setStep("identity")}
-          className="mt-2 text-xs font-medium text-slate-400 hover:underline"
+          className="mt-3 text-xs font-medium text-slate-400 hover:underline"
         >
           Bukan Anda? Ganti identitas
         </button>

@@ -332,12 +332,20 @@ export default function KuesionerDetailPage() {
                     </p>
                   </div>
                 </div>
-                <a
-                  href={`/api/admin/kuesioner/${id}/export?key=${encodeURIComponent(key || "")}`}
-                  className="rounded-lg border border-brand-600 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
-                >
-                  Unduh CSV
-                </a>
+                <div className="flex gap-2">
+                  <a
+                    href={`/api/admin/kuesioner/${id}/export?key=${encodeURIComponent(key || "")}`}
+                    className="rounded-lg border border-brand-600 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50"
+                  >
+                    Unduh CSV
+                  </a>
+                  <a
+                    href={`/api/admin/kuesioner/${id}/export/xlsx?key=${encodeURIComponent(key || "")}`}
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                  >
+                    Unduh Excel (.xlsx)
+                  </a>
+                </div>
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
