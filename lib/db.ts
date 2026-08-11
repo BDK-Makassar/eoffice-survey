@@ -215,18 +215,40 @@ export async function getQuestions(questionnaireId: number): Promise<QuestionDef
 
 export async function replaceQuestions(questionnaireId: number, questions: QuestionDef[]) {
   await ensureSchema();
-  await sql`DELETE FROM questions WHERE questionnaire_id = ${questionnaireId};`;
+
+  // Update pertanyaan yang sudah ada di tempat (ID tetap sama) alih-alih delete+recreate,
+  // supaya jawaban yang sudah masuk (answers.question_id -> questions.id, ON DELETE CASCADE)
+  // tidak ikut terhapus saat admin cuma mengubah label/urutan pertanyaan yang masih dipakai.
+  const existingRows = await sql`SELECT id FROM questions WHERE questionnaire_id = ${questionnaireId};`;
+  const existingIds = new Set((existingRows as any[]).map((r) => r.id));
+  const keepIds = new Set<number>();
+
   let i = 0;
   for (const q of questions) {
-    await sql`
-      INSERT INTO questions (questionnaire_id, type, label, options, required, order_index)
-      VALUES (
-        ${questionnaireId}, ${q.type}, ${q.label},
-        ${q.options && q.options.length ? JSON.stringify(q.options) : null},
-        ${q.required}, ${i}
-      );
-    `;
+    const options = q.options && q.options.length ? JSON.stringify(q.options) : null;
+    if (q.id && existingIds.has(q.id)) {
+      await sql`
+        UPDATE questions
+        SET type = ${q.type}, label = ${q.label}, options = ${options}, required = ${q.required}, order_index = ${i}
+        WHERE id = ${q.id} AND questionnaire_id = ${questionnaireId};
+      `;
+      keepIds.add(q.id);
+    } else {
+      const rows = await sql`
+        INSERT INTO questions (questionnaire_id, type, label, options, required, order_index)
+        VALUES (${questionnaireId}, ${q.type}, ${q.label}, ${options}, ${q.required}, ${i})
+        RETURNING id;
+      `;
+      keepIds.add(rows[0].id);
+    }
     i++;
+  }
+
+  // Pertanyaan yang tidak lagi ada di form (dihapus admin) dihapus dari DB,
+  // dan itu memang seharusnya ikut menghapus jawaban terkait.
+  const toDelete = [...existingIds].filter((id) => !keepIds.has(id));
+  if (toDelete.length > 0) {
+    await sql`DELETE FROM questions WHERE id = ANY(${toDelete});`;
   }
 }
 
