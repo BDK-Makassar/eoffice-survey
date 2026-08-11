@@ -9,7 +9,7 @@ function parseCsv(text: string): string[][] {
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
-    .map((line) => line.split(";").map((cell) => cell.trim().replace(/^"+|"+$/g, "").trim()));
+    .map((line) => line.split("|").map((cell) => cell.trim().replace(/^"+|"+$/g, "").trim()));
 }
 
 export async function POST(req: NextRequest) {

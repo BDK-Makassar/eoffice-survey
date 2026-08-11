@@ -132,7 +132,7 @@ export default function UsersPage() {
   }
 
   function downloadTemplate() {
-    const csv = "nama;nip;jabatan\nContoh Nama;198001012000031001;Widyaiswara Ahli Muda\n";
+    const csv = "nama|nip|jabatan\nContoh Nama|198001012000031001|Widyaiswara Ahli Muda\n";
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -181,8 +181,8 @@ export default function UsersPage() {
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-800">Import CSV</h2>
           <p className="mt-1 text-xs text-slate-500">
-            File CSV dipisah titik koma (<code className="rounded bg-slate-100 px-1">;</code>) dengan header{" "}
-            <code className="rounded bg-slate-100 px-1">nama;nip;jabatan</code>. Tanda kutip di awal/akhir
+            File CSV dipisah tanda pipa (<code className="rounded bg-slate-100 px-1">|</code>) dengan header{" "}
+            <code className="rounded bg-slate-100 px-1">nama|nip|jabatan</code>. Tanda kutip di awal/akhir
             NIP (mis. dari export Excel) otomatis dihilangkan. Pengguna dengan NIP yang sudah ada akan
             diperbarui datanya.
           </p>
