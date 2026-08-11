@@ -47,6 +47,7 @@ export default function KuesionerDetailPage() {
 
   const [results, setResults] = useState<any | null>(null);
   const [resultsLoading, setResultsLoading] = useState(false);
+  const [deletingResponseId, setDeletingResponseId] = useState<number | null>(null);
 
   async function load() {
     setLoading(true);
@@ -63,6 +64,17 @@ export default function KuesionerDetailPage() {
     const json = await res.json();
     setResults(json);
     setResultsLoading(false);
+  }
+
+  async function handleDeleteResponse(responseId: number, nama: string) {
+    if (
+      !confirm(`Hapus jawaban ${nama} untuk kuesioner ini? Jawaban yang dihapus tidak bisa dikembalikan.`)
+    )
+      return;
+    setDeletingResponseId(responseId);
+    await adminFetch(`/api/admin/kuesioner/${id}/responses/${responseId}`, { method: "DELETE" });
+    setDeletingResponseId(null);
+    loadResults();
   }
 
   useEffect(() => {
@@ -346,6 +358,35 @@ export default function KuesionerDetailPage() {
                     Unduh Excel (.xlsx)
                   </a>
                 </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 className="mb-3 text-sm font-semibold text-slate-800">
+                  Sudah Mengisi ({results.completion.responded.length})
+                </h3>
+                {results.completion.responded.length === 0 ? (
+                  <p className="text-xs text-slate-400">Belum ada yang mengisi.</p>
+                ) : (
+                  <ul className="max-h-64 overflow-y-auto divide-y divide-slate-100 text-sm">
+                    {results.completion.responded.map((u: any) => (
+                      <li key={u.response_id} className="flex items-center justify-between gap-3 py-1.5">
+                        <div className="min-w-0">
+                          <p className="truncate">{u.nama}</p>
+                          <p className="text-xs text-slate-400">
+                            {u.nip} &middot; {u.jabatan}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteResponse(u.response_id, u.nama)}
+                          disabled={deletingResponseId === u.response_id}
+                          className="shrink-0 text-xs font-medium text-red-500 hover:underline disabled:opacity-50"
+                        >
+                          {deletingResponseId === u.response_id ? "Menghapus..." : "Hapus Jawaban"}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

@@ -288,10 +288,15 @@ export async function submitResponse(
   return responseId;
 }
 
+export async function deleteResponse(questionnaireId: number, responseId: number) {
+  await ensureSchema();
+  await sql`DELETE FROM responses WHERE id = ${responseId} AND questionnaire_id = ${questionnaireId};`;
+}
+
 export async function getCompletionStatus(questionnaireId: number) {
   await ensureSchema();
   const responded = await sql`
-    SELECT u.id, u.nama, u.nip, u.jabatan, r.submitted_at
+    SELECT u.id, u.nama, u.nip, u.jabatan, r.id AS response_id, r.submitted_at
     FROM responses r JOIN users u ON u.id = r.user_id
     WHERE r.questionnaire_id = ${questionnaireId}
     ORDER BY r.submitted_at DESC;
