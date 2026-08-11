@@ -90,6 +90,20 @@ export async function listUsers(): Promise<UserDef[]> {
   return rows as unknown as UserDef[];
 }
 
+export async function listUsersWithStatus(questionnaireId: number): Promise<UserDef[]> {
+  await ensureSchema();
+  const rows = await sql`
+    SELECT u.id, u.nama, u.nip, u.jabatan,
+      EXISTS (
+        SELECT 1 FROM responses r
+        WHERE r.questionnaire_id = ${questionnaireId} AND r.user_id = u.id
+      ) AS has_responded
+    FROM users u ORDER BY u.nama ASC;
+  `;
+  console.log(`[db] listUsersWithStatus(${questionnaireId}) -> ${rows.length} baris`);
+  return rows as unknown as UserDef[];
+}
+
 export async function createUser(u: UserDef) {
   await ensureSchema();
   const rows = await sql`

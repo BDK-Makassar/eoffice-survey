@@ -49,7 +49,7 @@ export default function SurveyPage() {
   }, [id]);
 
   const filteredUsers = useMemo(() => {
-    if (!search.trim()) return users.slice(0, 20);
+    if (!search.trim()) return [];
     const q = search.toLowerCase();
     return users
       .filter((u) => u.nama.toLowerCase().includes(q) || u.nip.includes(q))
@@ -147,20 +147,36 @@ export default function SurveyPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="mt-3 max-h-72 space-y-1.5 overflow-y-auto">
-            {filteredUsers.length === 0 && (
+            {search.trim() !== "" && filteredUsers.length === 0 && (
               <p className="py-4 text-center text-sm text-slate-400">Tidak ditemukan.</p>
             )}
             {filteredUsers.map((u) => (
               <button
                 key={u.id}
+                disabled={u.has_responded}
+                title={u.has_responded ? "Anda sudah pernah mengisi kuesioner ini." : undefined}
                 onClick={() => {
+                  if (u.has_responded) return;
                   setSelectedUser(u);
                   setStep("form");
                 }}
-                className="flex w-full flex-col rounded-lg border border-slate-200 px-4 py-2.5 text-left text-sm transition hover:border-brand-400 hover:bg-brand-50"
+                className={`flex w-full flex-col rounded-lg border px-4 py-2.5 text-left text-sm transition ${
+                  u.has_responded
+                    ? "cursor-not-allowed border-green-300 bg-green-50"
+                    : "border-slate-200 hover:border-brand-400 hover:bg-brand-50"
+                }`}
               >
-                <span className="font-medium text-slate-800">{u.nama}</span>
-                <span className="text-xs text-slate-500">
+                <span className="flex items-center justify-between gap-2">
+                  <span className={`font-medium ${u.has_responded ? "text-green-800" : "text-slate-800"}`}>
+                    {u.nama}
+                  </span>
+                  {u.has_responded && (
+                    <span className="rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                      Sudah Mengisi
+                    </span>
+                  )}
+                </span>
+                <span className={`text-xs ${u.has_responded ? "text-green-700" : "text-slate-500"}`}>
                   {u.nip} &middot; {u.jabatan}
                 </span>
               </button>

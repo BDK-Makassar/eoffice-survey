@@ -33,6 +33,7 @@ export interface UserDef {
   nama: string;
   nip: string;
   jabatan: string;
+  has_responded?: boolean;
 }
 
 export interface QuestionnaireDef {

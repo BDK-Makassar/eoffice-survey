@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getQuestionnaire, getQuestions, listUsers } from "@/lib/db";
+import { getQuestionnaire, getQuestions, listUsersWithStatus } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ error: "Kuesioner tidak ditemukan atau belum aktif" }, { status: 404 });
     }
     const questions = await getQuestions(id);
-    const users = await listUsers();
+    const users = await listUsersWithStatus(id);
     console.log(
       `[api/survey/${params.id}] sukses -> ${questions.length} pertanyaan, ${users.length} user`
     );
