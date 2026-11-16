@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { SCALE_1_4_LABELS } from "@/lib/types";
 import type { QuestionDef, UserDef } from "@/lib/types";
 
 interface Meta {
@@ -11,6 +12,7 @@ interface Meta {
 }
 
 const SCALE = [1, 2, 3, 4, 5];
+const SCALE_4 = SCALE_1_4_LABELS.map((label, i) => ({ n: i + 1, label }));
 
 export default function SurveyPage() {
   const params = useParams();
@@ -202,6 +204,24 @@ export default function SurveyPage() {
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{meta?.title}</h1>
         {meta?.description && <p className="mt-2 text-sm text-slate-600">{meta.description}</p>}
 
+        {questions.some((q) => q.type === "scale_1_4") && (
+          <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
+              Keterangan Skala 1–4
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-1.5 text-xs text-brand-900 sm:grid-cols-4 sm:gap-2">
+              {SCALE_4.map((s) => (
+                <div key={s.n} className="flex items-center gap-1.5 sm:flex-col sm:items-center sm:gap-1 sm:text-center">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-[11px] font-semibold text-white">
+                    {s.n}
+                  </span>
+                  <span>{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {questions.some((q) => q.type === "scale_1_5") && (
           <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50 p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
@@ -241,6 +261,25 @@ export default function SurveyPage() {
               {idx + 1}. {q.label}
               {q.required && <span className="ml-1 text-red-500">*</span>}
             </p>
+
+            {q.type === "scale_1_4" && (
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {SCALE_4.map((s) => (
+                  <button
+                    type="button"
+                    key={s.n}
+                    onClick={() => setAnswer(q.id!, String(s.n))}
+                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                      answers[q.id!] === String(s.n)
+                        ? "border-brand-600 bg-brand-600 text-white"
+                        : "border-slate-300 bg-white text-slate-600 hover:border-brand-400"
+                    }`}
+                  >
+                    {s.n}. {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {q.type === "scale_1_5" && (
               <div className="mt-3 flex items-center gap-2">

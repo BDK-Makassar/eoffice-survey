@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAdminKey } from "@/lib/useAdminKey";
-import { QUESTION_TYPES, questionNeedsOptions, questionTypeLabel } from "@/lib/types";
+import { QUESTION_TYPES, questionNeedsOptions, questionTypeLabel, ikmCategory } from "@/lib/types";
 import type { QuestionDef } from "@/lib/types";
 
 interface Meta {
@@ -409,6 +409,8 @@ export default function KuesionerDetailPage() {
                 )}
               </div>
 
+              <IkmSummary results={results.results} />
+
               <div className="space-y-4">
                 {results.results.map((item: any) => (
                   <div key={item.question.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -428,8 +430,46 @@ export default function KuesionerDetailPage() {
   );
 }
 
+// Indeks kepuasan keseluruhan = rata-rata nilai per unsur (pertanyaan skala 1–4) x 25.
+function IkmSummary({ results }: { results: { question: QuestionDef; answers: { value: string }[] }[] }) {
+  const avgs = results
+    .filter((r) => r.question.type === "scale_1_4")
+    .map((r) => r.answers.map((a) => Number(a.value)).filter((n) => n >= 1 && n <= 4))
+    .filter((nums) => nums.length)
+    .map((nums) => nums.reduce((a, b) => a + b, 0) / nums.length);
+  if (!avgs.length) return null;
+  const k = ikmCategory(avgs.reduce((a, b) => a + b, 0) / avgs.length);
+  return (
+    <div className="rounded-xl border border-brand-200 bg-brand-50 p-5 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-800">Indeks Kepuasan Pengguna</h3>
+      <p className="mt-1 text-3xl font-bold text-brand-700">
+        {k.nilai.toFixed(2)} <span className="text-base font-medium">Mutu {k.mutu} &middot; {k.kinerja}</span>
+      </p>
+      <p className="mt-2 text-xs text-slate-500">
+        Dari {avgs.length} pertanyaan skala 1–4. Kategori: A 88,31–100 Sangat Baik &middot; B 76,61–88,30 Baik &middot; C
+        65,00–76,60 Kurang Baik &middot; D 25,00–64,99 Tidak Baik.
+      </p>
+    </div>
+  );
+}
+
 function QuestionResult({ question, answers }: { question: QuestionDef; answers: { value: string; nama: string }[] }) {
   if (answers.length === 0) return <p className="text-xs text-slate-400">Belum ada jawaban.</p>;
+
+  if (question.type === "scale_1_4") {
+    const nums = answers.map((a) => Number(a.value)).filter((n) => n >= 1 && n <= 4);
+    if (!nums.length) return <p className="text-xs text-slate-400">Belum ada jawaban skala 1–4.</p>;
+    const avg = nums.reduce((a, b) => a + b, 0) / nums.length;
+    const k = ikmCategory(avg);
+    return (
+      <p className="text-2xl font-bold text-brand-700">
+        {avg.toFixed(2)} / 4
+        <span className="ml-3 text-sm font-medium text-slate-500">
+          Nilai {k.nilai.toFixed(2)} &middot; Mutu {k.mutu} ({k.kinerja})
+        </span>
+      </p>
+    );
+  }
 
   if (question.type === "scale_1_5" || question.type === "number") {
     const nums = answers.map((a) => Number(a.value)).filter((n) => !isNaN(n));

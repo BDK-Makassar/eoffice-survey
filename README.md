@@ -6,7 +6,7 @@ dan pantau siapa saja yang belum mengisi.
 
 ## Fitur
 - **Manajemen Kuesioner**: admin bisa membuat banyak kuesioner, mengaktifkan/menonaktifkan,
-  dan menambah pertanyaan dengan tipe: Skala 1–5, Pilihan Tunggal, Pilihan Ganda (checkbox),
+  dan menambah pertanyaan dengan tipe: Skala Kepuasan 1–4 (otomatis dihitung Indeks Kepuasan & mutu A–D sesuai Permenpan RB 14/2017), Skala 1–5, Pilihan Tunggal, Pilihan Ganda (checkbox),
   Dropdown, Teks Singkat, Teks Panjang, Angka.
 - **Manajemen Pengguna**: tambah/ubah/hapus pegawai (nama, NIP, jabatan), plus **import CSV**
   massal (otomatis update jika NIP sudah ada).

@@ -1,4 +1,5 @@
 export const QUESTION_TYPES = [
+  { value: "scale_1_4", label: "Skala Kepuasan 1–4", needsOptions: false },
   { value: "scale_1_5", label: "Skala 1–5", needsOptions: false },
   { value: "single_choice", label: "Pilihan Tunggal", needsOptions: true },
   { value: "multi_choice", label: "Pilihan Ganda (checkbox)", needsOptions: true },
@@ -46,4 +47,15 @@ export interface QuestionnaireDef {
 export interface AnswerInput {
   question_id: number;
   value: string;
+}
+
+// Skala kepuasan genap (tanpa nilai tengah), mengikuti Permenpan RB No. 14 Tahun 2017.
+export const SCALE_1_4_LABELS = ["Tidak Puas", "Kurang Puas", "Puas", "Sangat Puas"];
+
+// Indikator penilaian: rata-rata skala 1–4 dikonversi ke 25–100 (x25), lalu dikategorikan.
+export function ikmCategory(avg: number) {
+  const nilai = avg * 25;
+  const [mutu, kinerja] =
+    nilai >= 88.31 ? ["A", "Sangat Baik"] : nilai >= 76.61 ? ["B", "Baik"] : nilai >= 65 ? ["C", "Kurang Baik"] : ["D", "Tidak Baik"];
+  return { nilai, mutu, kinerja };
 }
