@@ -63,6 +63,7 @@ export async function ensureSchema() {
       order_index INT DEFAULT 0
     );
   `;
+  await db`ALTER TABLE questions ADD COLUMN IF NOT EXISTS indicator TEXT;`;
   await db`
     CREATE TABLE IF NOT EXISTS responses (
       id SERIAL PRIMARY KEY,
@@ -230,14 +231,14 @@ export async function replaceQuestions(questionnaireId: number, questions: Quest
     if (q.id && existingIds.has(q.id)) {
       await sql`
         UPDATE questions
-        SET type = ${q.type}, label = ${q.label}, options = ${options}, required = ${q.required}, order_index = ${i}
+        SET type = ${q.type}, label = ${q.label}, options = ${options}, required = ${q.required}, order_index = ${i}, indicator = ${q.indicator || null}
         WHERE id = ${q.id} AND questionnaire_id = ${questionnaireId};
       `;
       keepIds.add(q.id);
     } else {
       const rows = await sql`
-        INSERT INTO questions (questionnaire_id, type, label, options, required, order_index)
-        VALUES (${questionnaireId}, ${q.type}, ${q.label}, ${options}, ${q.required}, ${i})
+        INSERT INTO questions (questionnaire_id, type, label, options, required, order_index, indicator)
+        VALUES (${questionnaireId}, ${q.type}, ${q.label}, ${options}, ${q.required}, ${i}, ${q.indicator || null})
         RETURNING id;
       `;
       keepIds.add(rows[0].id);

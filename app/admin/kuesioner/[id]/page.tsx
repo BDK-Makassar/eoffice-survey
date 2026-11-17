@@ -235,6 +235,11 @@ export default function KuesionerDetailPage() {
               </button>
             </div>
 
+            <datalist id="indicator-list">
+              {[...new Set(questions.map((q) => q.indicator).filter(Boolean))].map((i) => (
+                <option key={i!} value={i!} />
+              ))}
+            </datalist>
             <div className="space-y-4">
               {questions.length === 0 && (
                 <p className="text-sm text-slate-400">Belum ada pertanyaan.</p>
@@ -270,6 +275,13 @@ export default function KuesionerDetailPage() {
                           />
                           Wajib diisi
                         </label>
+                        <input
+                          list="indicator-list"
+                          className="min-w-0 flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs focus:border-brand-500 focus:outline-none"
+                          placeholder="Indikator (mis. Kemudahan Penggunaan)"
+                          value={q.indicator || ""}
+                          onChange={(e) => updateQuestion(idx, { indicator: e.target.value })}
+                        />
                       </div>
                       {questionNeedsOptions(q.type) && (
                         <textarea
@@ -417,12 +429,14 @@ export default function KuesionerDetailPage() {
               </div>
 
               <IkmSummary results={results.results} />
+              <IndicatorSummary results={results.results} />
 
               <div className="space-y-4">
                 {results.results.map((item: any) => (
                   <div key={item.question.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                     <h3 className="mb-1 text-sm font-semibold text-slate-800">{item.question.label}</h3>
                     <p className="mb-3 text-xs text-slate-400">
+                      {item.question.indicator && <>{item.question.indicator} &middot; </>}
                       {questionTypeLabel(item.question.type)} &middot; {item.answers.length} jawaban
                     </p>
                     <QuestionResult question={item.question} answers={item.answers} />
@@ -456,6 +470,64 @@ function IkmSummary({ results }: { results: { question: QuestionDef; answers: { 
         Dari {avgs.length} pertanyaan skala 1–4. Kategori: A 88,31–100 Sangat Baik &middot; B 76,61–88,30 Baik &middot; C
         65,00–76,60 Kurang Baik &middot; D 25,00–64,99 Tidak Baik.
       </p>
+    </div>
+  );
+}
+
+// Rekap per indikator: skala 1–4 -> nilai x25 + mutu; pilihan tunggal -> % jawaban positif (2 opsi teratas, target ≥75%).
+function IndicatorSummary({ results }: { results: { question: QuestionDef; answers: { value: string }[] }[] }) {
+  const groups = new Map<string, { no: number[]; scale: number[]; pos: number; choice: number; text: number }>();
+  results.forEach((r, i) => {
+    const key = r.question.indicator?.trim();
+    if (!key) return;
+    const g = groups.get(key) || { no: [], scale: [], pos: 0, choice: 0, text: 0 };
+    g.no.push(i + 1);
+    if (r.question.type === "scale_1_4") {
+      const nums = r.answers.map((a) => Number(a.value)).filter((n) => n >= 1 && n <= 4);
+      if (nums.length) g.scale.push(nums.reduce((a, b) => a + b, 0) / nums.length);
+    } else if (r.question.type === "single_choice") {
+      const top = (r.question.options || []).slice(0, 2);
+      g.choice += r.answers.length;
+      g.pos += r.answers.filter((a) => top.includes(a.value)).length;
+    } else {
+      g.text += r.answers.filter((a) => a.value.trim()).length;
+    }
+    groups.set(key, g);
+  });
+  if (!groups.size) return null;
+  return (
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-800">Rekap per Indikator</h3>
+      <table className="mt-3 w-full text-left text-xs">
+        <thead className="text-slate-500">
+          <tr>
+            <th className="py-1.5 pr-3 font-medium">Indikator</th>
+            <th className="py-1.5 pr-3 font-medium">Soal</th>
+            <th className="py-1.5 font-medium">Hasil</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 text-slate-700">
+          {[...groups].map(([name, g]) => {
+            const parts: string[] = [];
+            if (g.scale.length) {
+              const k = ikmCategory(g.scale.reduce((a, b) => a + b, 0) / g.scale.length);
+              parts.push(`${k.nilai.toFixed(2)} (Mutu ${k.mutu}, ${k.kinerja})`);
+            }
+            if (g.choice) {
+              const pct = (g.pos / g.choice) * 100;
+              parts.push(`${pct.toFixed(0)}% positif (${pct >= 75 ? "Tercapai" : "Belum tercapai"})`);
+            }
+            if (g.text) parts.push(`${g.text} masukan`);
+            return (
+              <tr key={name}>
+                <td className="py-1.5 pr-3 font-medium">{name}</td>
+                <td className="py-1.5 pr-3">{g.no.join(", ")}</td>
+                <td className="py-1.5">{parts.join(" · ") || "Belum ada jawaban"}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

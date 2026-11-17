@@ -27,6 +27,7 @@ export interface QuestionDef {
   options: string[] | null;
   required: boolean;
   order_index: number;
+  indicator?: string | null;
 }
 
 export interface UserDef {
