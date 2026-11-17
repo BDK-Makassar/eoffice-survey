@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
     const q = await createQuestionnaire({
       title: body.title,
       description: body.description || "",
+      image_url: body.image_url || "",
       is_active: body.is_active ?? true,
     });
     return NextResponse.json({ questionnaire: q });

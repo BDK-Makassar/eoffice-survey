@@ -10,6 +10,7 @@ interface Meta {
   id: number;
   title: string;
   description: string;
+  image_url: string | null;
   is_active: boolean;
 }
 
@@ -190,6 +191,12 @@ export default function KuesionerDetailPage() {
               rows={2}
               value={meta.description}
               onChange={(e) => setMeta({ ...meta, description: e.target.value })}
+            />
+            <input
+              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+              placeholder="URL screenshot sistem (opsional), mis. /screenshots/pjj.png"
+              value={meta.image_url || ""}
+              onChange={(e) => setMeta({ ...meta, image_url: e.target.value })}
             />
             <label className="mt-2 flex items-center gap-2 text-sm text-slate-600">
               <input

@@ -9,6 +9,7 @@ interface Meta {
   id: number;
   title: string;
   description: string;
+  image_url: string | null;
 }
 
 const SCALE = [1, 2, 3, 4, 5];
@@ -143,7 +144,13 @@ export default function SurveyPage() {
       <main className="mx-auto max-w-lg px-4 py-14">
         <p className="text-sm font-medium uppercase tracking-wide text-brand-600">BDK Makassar</p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{meta?.title}</h1>
-        {meta?.description && <p className="mt-2 text-sm text-slate-600">{meta.description}</p>}
+        {meta?.description && <p className="mt-2 whitespace-pre-line text-sm text-slate-600">{meta.description}</p>}
+        {meta?.image_url && (
+          <figure className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <img src={meta.image_url} alt={`Tampilan ${meta.title}`} className="w-full" />
+            <figcaption className="px-3 py-2 text-xs text-slate-500">Tampilan sistem yang dinilai</figcaption>
+          </figure>
+        )}
 
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <label className="text-sm font-medium text-slate-700">Cari nama atau NIP Anda</label>
@@ -202,7 +209,13 @@ export default function SurveyPage() {
           {selectedUser?.nama} &middot; {selectedUser?.jabatan}
         </p>
         <h1 className="mt-1 text-2xl font-bold text-slate-900">{meta?.title}</h1>
-        {meta?.description && <p className="mt-2 text-sm text-slate-600">{meta.description}</p>}
+        {meta?.description && <p className="mt-2 whitespace-pre-line text-sm text-slate-600">{meta.description}</p>}
+        {meta?.image_url && (
+          <figure className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <img src={meta.image_url} alt={`Tampilan ${meta.title}`} className="w-full" />
+            <figcaption className="px-3 py-2 text-xs text-slate-500">Tampilan sistem yang dinilai</figcaption>
+          </figure>
+        )}
 
         {questions.some((q) => q.type === "scale_1_4") && (
           <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50 p-4">

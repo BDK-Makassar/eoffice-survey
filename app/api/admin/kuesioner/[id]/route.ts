@@ -29,6 +29,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const q = await updateQuestionnaire(Number(params.id), {
       title: body.title,
       description: body.description || "",
+      image_url: body.image_url || "",
       is_active: !!body.is_active,
     });
     return NextResponse.json({ questionnaire: q });

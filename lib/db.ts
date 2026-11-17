@@ -51,6 +51,7 @@ export async function ensureSchema() {
       created_at TIMESTAMPTZ DEFAULT now()
     );
   `;
+  await db`ALTER TABLE questionnaires ADD COLUMN IF NOT EXISTS image_url TEXT;`;
   await db`
     CREATE TABLE IF NOT EXISTS questions (
       id SERIAL PRIMARY KEY,
@@ -157,7 +158,7 @@ export async function listQuestionnaires() {
 export async function listActiveQuestionnaires() {
   await ensureSchema();
   const rows = await sql`
-    SELECT q.id, q.title, q.description,
+    SELECT q.id, q.title, q.description, q.image_url,
       (SELECT COUNT(*) FROM responses WHERE questionnaire_id = q.id)::int AS response_count,
       (SELECT COUNT(*) FROM users)::int AS total_users
     FROM questionnaires q WHERE q.is_active = true ORDER BY q.created_at DESC;
@@ -178,8 +179,8 @@ export async function getQuestionnaire(id: number) {
 export async function createQuestionnaire(q: QuestionnaireDef) {
   await ensureSchema();
   const rows = await sql`
-    INSERT INTO questionnaires (title, description, is_active)
-    VALUES (${q.title}, ${q.description}, ${q.is_active})
+    INSERT INTO questionnaires (title, description, image_url, is_active)
+    VALUES (${q.title}, ${q.description}, ${q.image_url || null}, ${q.is_active})
     RETURNING *;
   `;
   return rows[0];
@@ -188,7 +189,7 @@ export async function createQuestionnaire(q: QuestionnaireDef) {
 export async function updateQuestionnaire(id: number, q: QuestionnaireDef) {
   await ensureSchema();
   const rows = await sql`
-    UPDATE questionnaires SET title = ${q.title}, description = ${q.description}, is_active = ${q.is_active}
+    UPDATE questionnaires SET title = ${q.title}, description = ${q.description}, image_url = ${q.image_url || null}, is_active = ${q.is_active}
     WHERE id = ${id}
     RETURNING *;
   `;
