@@ -24,16 +24,10 @@ export default function SiteHeader({ children, wide = false }: { children?: Reac
       </svg>
       <div className={`relative mx-auto px-4 pt-8 sm:pt-10 ${wide ? "max-w-2xl" : "max-w-xl"}`}>
         <a href="/" className="inline-flex items-center gap-3 rounded-md">
-          <svg aria-hidden viewBox="0 0 40 40" className="h-9 w-9 text-emas-500">
-            <g fill="currentColor">
-              <rect x="9" y="9" width="22" height="22" rx="2" />
-              <rect x="9" y="9" width="22" height="22" rx="2" transform="rotate(45 20 20)" />
-            </g>
-            <circle cx="20" cy="20" r="5" className="fill-brand-800" />
-          </svg>
+          <img src="/logo-kemenag.png" alt="Logo Kementerian Agama" width={45} height={40} className="h-10 w-auto" />
           <span className="leading-tight">
-            <span className="block text-sm font-bold">BDK Makassar</span>
-            <span className="block text-xs text-brand-100">Balai Diklat Keagamaan Makassar</span>
+            <span className="block text-xs text-brand-100">Kementerian Agama Republik Indonesia</span>
+            <span className="block text-sm font-bold">Balai Diklat Keagamaan Makassar</span>
           </span>
         </a>
         <div className="mt-8">{children}</div>
