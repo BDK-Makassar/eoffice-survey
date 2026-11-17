@@ -11,6 +11,7 @@ interface Meta {
   title: string;
   description: string;
   image_url: string | null;
+  public_mode: boolean;
   is_active: boolean;
 }
 
@@ -206,6 +207,14 @@ export default function KuesionerDetailPage() {
               />
               Aktif (bisa diisi pegawai)
             </label>
+            <label className="mt-2 flex items-center gap-2 text-sm text-slate-600">
+              <input
+                type="checkbox"
+                checked={!!meta.public_mode}
+                onChange={(e) => setMeta({ ...meta, public_mode: e.target.checked })}
+              />
+              Mode responden umum (bisa diisi peserta pelatihan/masyarakat tanpa terdaftar sebagai pegawai)
+            </label>
             <button
               onClick={saveMeta}
               disabled={saving}
@@ -362,6 +371,12 @@ export default function KuesionerDetailPage() {
                       {results.completion.totalUsers - results.completion.totalResponded}
                     </p>
                   </div>
+                  {results.completion.totalPublic > 0 && (
+                    <div>
+                      <p className="text-xs text-slate-500">Responden Umum</p>
+                      <p className="text-2xl font-bold text-sky-600">{results.completion.totalPublic}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <a
@@ -390,7 +405,14 @@ export default function KuesionerDetailPage() {
                     {results.completion.responded.map((u: any) => (
                       <li key={u.response_id} className="flex items-center justify-between gap-3 py-1.5">
                         <div className="min-w-0">
-                          <p className="truncate">{u.nama}</p>
+                          <p className="truncate">
+                            {u.nama}
+                            {u.is_public && (
+                              <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700">
+                                Umum
+                              </span>
+                            )}
+                          </p>
                           <p className="text-xs text-slate-400">
                             {u.nip} &middot; {u.jabatan}
                           </p>

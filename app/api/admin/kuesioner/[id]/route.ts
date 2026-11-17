@@ -30,6 +30,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       title: body.title,
       description: body.description || "",
       image_url: body.image_url || "",
+      public_mode: !!body.public_mode,
       is_active: !!body.is_active,
     });
     return NextResponse.json({ questionnaire: q });

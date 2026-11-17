@@ -11,6 +11,9 @@ interface Sistem {
   nama: string;
   lingkup: string;
   totalUsers: number;
+  pegawai: number;
+  umum: number;
+  publicMode: boolean;
   responded: { submitted_at: string }[];
   ikm: ReturnType<typeof overallIkm>;
   indikator: IndicatorRow[];
@@ -67,6 +70,9 @@ export default function LaporanMonevPage() {
             nama: namaSistem(q.title),
             lingkup: lingkupSistem(q.title),
             totalUsers: r.completion.totalUsers,
+            pegawai: r.completion.totalResponded,
+            umum: r.completion.totalPublic || 0,
+            publicMode: !!q.public_mode,
             responded: r.completion.responded,
             ikm: overallIkm(r.results),
             indikator: indicatorRecap(r.results),
@@ -178,7 +184,14 @@ export default function LaporanMonevPage() {
               pilihan tunggal, dan pertanyaan isian hambatan serta saran.
             </li>
             <li>
-              <b>Responden:</b> pegawai BDK Makassar sebanyak {data[0]?.totalUsers ?? TITIK} orang.
+              <b>Responden:</b> pegawai BDK Makassar sebanyak {data[0]?.totalUsers ?? TITIK} orang
+              {data.some((s) => s.publicMode) && (
+                <>
+                  , ditambah responden umum (peserta/alumni pelatihan, ASN Kementerian Agama, dan masyarakat) untuk{" "}
+                  {data.filter((s) => s.publicMode).map((s) => s.nama).join(" dan ")} sebagai sistem layanan kepada publik
+                </>
+              )}
+              .
             </li>
             <li>
               <b>Periode pengisian:</b> {periode}.
@@ -206,8 +219,9 @@ export default function LaporanMonevPage() {
             <thead>
               <tr>
                 <th className={th}>Sistem Informasi</th>
-                <th className={th}>Responden</th>
-                <th className={th}>Partisipasi</th>
+                <th className={th}>Responden Pegawai</th>
+                <th className={th}>Partisipasi Pegawai</th>
+                <th className={th}>Responden Umum</th>
                 <th className={th}>Nilai Indeks</th>
                 <th className={th}>Mutu</th>
               </tr>
@@ -217,9 +231,10 @@ export default function LaporanMonevPage() {
                 <tr key={s.id}>
                   <td className={td}>{s.nama}</td>
                   <td className={td}>
-                    {s.responded.length} dari {s.totalUsers}
+                    {s.pegawai} dari {s.totalUsers}
                   </td>
-                  <td className={td}>{s.totalUsers ? fmt((s.responded.length / s.totalUsers) * 100) : "0"}%</td>
+                  <td className={td}>{s.totalUsers ? fmt((s.pegawai / s.totalUsers) * 100) : "0"}%</td>
+                  <td className={td}>{s.publicMode ? s.umum : "—"}</td>
                   <td className={td}>{s.ikm ? fmt(s.ikm.nilai) : "—"}</td>
                   <td className={td}>{s.ikm ? `${s.ikm.mutu} (${s.ikm.kinerja})` : "—"}</td>
                 </tr>

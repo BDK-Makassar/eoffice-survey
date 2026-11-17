@@ -52,6 +52,7 @@ export async function ensureSchema() {
     );
   `;
   await db`ALTER TABLE questionnaires ADD COLUMN IF NOT EXISTS image_url TEXT;`;
+  await db`ALTER TABLE questionnaires ADD COLUMN IF NOT EXISTS public_mode BOOLEAN DEFAULT false;`;
   await db`
     CREATE TABLE IF NOT EXISTS questions (
       id SERIAL PRIMARY KEY,
@@ -73,6 +74,10 @@ export async function ensureSchema() {
       UNIQUE (questionnaire_id, user_id)
     );
   `;
+  // Responden umum (mode publik): user_id NULL, identitas disimpan di kolom berikut.
+  await db`ALTER TABLE responses ADD COLUMN IF NOT EXISTS respondent_name TEXT;`;
+  await db`ALTER TABLE responses ADD COLUMN IF NOT EXISTS respondent_category TEXT;`;
+  await db`ALTER TABLE responses ADD COLUMN IF NOT EXISTS respondent_org TEXT;`;
   await db`
     CREATE TABLE IF NOT EXISTS answers (
       id SERIAL PRIMARY KEY,
@@ -159,8 +164,8 @@ export async function listQuestionnaires() {
 export async function listActiveQuestionnaires() {
   await ensureSchema();
   const rows = await sql`
-    SELECT q.id, q.title, q.description, q.image_url,
-      (SELECT COUNT(*) FROM responses WHERE questionnaire_id = q.id)::int AS response_count,
+    SELECT q.id, q.title, q.description, q.image_url, q.public_mode,
+      (SELECT COUNT(*) FROM responses WHERE questionnaire_id = q.id AND user_id IS NOT NULL)::int AS response_count,
       (SELECT COUNT(*) FROM users)::int AS total_users
     FROM questionnaires q WHERE q.is_active = true ORDER BY q.created_at DESC;
   `;
@@ -180,8 +185,8 @@ export async function getQuestionnaire(id: number) {
 export async function createQuestionnaire(q: QuestionnaireDef) {
   await ensureSchema();
   const rows = await sql`
-    INSERT INTO questionnaires (title, description, image_url, is_active)
-    VALUES (${q.title}, ${q.description}, ${q.image_url || null}, ${q.is_active})
+    INSERT INTO questionnaires (title, description, image_url, public_mode, is_active)
+    VALUES (${q.title}, ${q.description}, ${q.image_url || null}, ${!!q.public_mode}, ${q.is_active})
     RETURNING *;
   `;
   return rows[0];
@@ -190,7 +195,7 @@ export async function createQuestionnaire(q: QuestionnaireDef) {
 export async function updateQuestionnaire(id: number, q: QuestionnaireDef) {
   await ensureSchema();
   const rows = await sql`
-    UPDATE questionnaires SET title = ${q.title}, description = ${q.description}, image_url = ${q.image_url || null}, is_active = ${q.is_active}
+    UPDATE questionnaires SET title = ${q.title}, description = ${q.description}, image_url = ${q.image_url || null}, public_mode = ${!!q.public_mode}, is_active = ${q.is_active}
     WHERE id = ${id}
     RETURNING *;
   `;
@@ -263,22 +268,33 @@ export async function hasResponded(questionnaireId: number, userId: number) {
   return rows.length > 0;
 }
 
+export interface PublicRespondent {
+  nama: string;
+  kategori: string;
+  instansi: string;
+}
+
+// userId = pegawai; publik = responden umum (userId null, tanpa cek duplikat).
 export async function submitResponse(
   questionnaireId: number,
-  userId: number,
-  answers: AnswerInput[]
+  userId: number | null,
+  answers: AnswerInput[],
+  publik?: PublicRespondent
 ) {
   await ensureSchema();
-  const existing = await sql`
-    SELECT id FROM responses WHERE questionnaire_id = ${questionnaireId} AND user_id = ${userId};
-  `;
-  if (existing.length > 0) {
-    const err: any = new Error("ALREADY_SUBMITTED");
-    err.code = "ALREADY_SUBMITTED";
-    throw err;
+  if (userId) {
+    const existing = await sql`
+      SELECT id FROM responses WHERE questionnaire_id = ${questionnaireId} AND user_id = ${userId};
+    `;
+    if (existing.length > 0) {
+      const err: any = new Error("ALREADY_SUBMITTED");
+      err.code = "ALREADY_SUBMITTED";
+      throw err;
+    }
   }
   const rows = await sql`
-    INSERT INTO responses (questionnaire_id, user_id) VALUES (${questionnaireId}, ${userId})
+    INSERT INTO responses (questionnaire_id, user_id, respondent_name, respondent_category, respondent_org)
+    VALUES (${questionnaireId}, ${userId}, ${publik?.nama ?? null}, ${publik?.kategori ?? null}, ${publik?.instansi ?? null})
     RETURNING id;
   `;
   const responseId = rows[0].id;
@@ -298,17 +314,20 @@ export async function deleteResponse(questionnaireId: number, responseId: number
 export async function getCompletionStatus(questionnaireId: number) {
   await ensureSchema();
   const responded = await sql`
-    SELECT u.id, u.nama, u.nip, u.jabatan, r.id AS response_id, r.submitted_at
-    FROM responses r JOIN users u ON u.id = r.user_id
+    SELECT u.id, COALESCE(u.nama, r.respondent_name) AS nama, COALESCE(u.nip, '-') AS nip,
+      COALESCE(u.jabatan, concat_ws(' – ', r.respondent_category, NULLIF(r.respondent_org, ''))) AS jabatan,
+      r.id AS response_id, r.submitted_at, (r.user_id IS NULL) AS is_public
+    FROM responses r LEFT JOIN users u ON u.id = r.user_id
     WHERE r.questionnaire_id = ${questionnaireId}
     ORDER BY r.submitted_at DESC;
   `;
-  const respondedIds = new Set((responded as any[]).map((r) => r.id));
+  const respondedIds = new Set((responded as any[]).filter((r) => !r.is_public).map((r) => r.id));
   const allUsers = await sql`SELECT id, nama, nip, jabatan FROM users ORDER BY nama ASC;`;
   const notResponded = (allUsers as any[]).filter((u) => !respondedIds.has(u.id));
   return {
     totalUsers: (allUsers as any[]).length,
-    totalResponded: (responded as any[]).length,
+    totalResponded: respondedIds.size, // pegawai saja
+    totalPublic: (responded as any[]).length - respondedIds.size,
     responded: responded as any[],
     notResponded,
   };
@@ -318,10 +337,10 @@ export async function getFullResults(questionnaireId: number) {
   await ensureSchema();
   const questions = await getQuestions(questionnaireId);
   const answerRows = await sql`
-    SELECT a.question_id, a.value, r.user_id, u.nama
+    SELECT a.question_id, a.value, r.user_id, COALESCE(u.nama, r.respondent_name) AS nama
     FROM answers a
     JOIN responses r ON r.id = a.response_id
-    JOIN users u ON u.id = r.user_id
+    LEFT JOIN users u ON u.id = r.user_id
     WHERE r.questionnaire_id = ${questionnaireId};
   `;
   const byQuestion: Record<number, { value: string; nama: string }[]> = {};
@@ -336,8 +355,9 @@ export async function getRawExportRows(questionnaireId: number) {
   await ensureSchema();
   const questions = await getQuestions(questionnaireId);
   const responses = await sql`
-    SELECT r.id AS response_id, r.submitted_at, u.nama, u.nip, u.jabatan
-    FROM responses r JOIN users u ON u.id = r.user_id
+    SELECT r.id AS response_id, r.submitted_at, COALESCE(u.nama, r.respondent_name) AS nama, COALESCE(u.nip, '-') AS nip,
+      COALESCE(u.jabatan, concat_ws(' – ', 'Responden umum', r.respondent_category, NULLIF(r.respondent_org, ''))) AS jabatan
+    FROM responses r LEFT JOIN users u ON u.id = r.user_id
     WHERE r.questionnaire_id = ${questionnaireId}
     ORDER BY r.submitted_at ASC;
   `;

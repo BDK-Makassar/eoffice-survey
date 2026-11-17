@@ -11,6 +11,9 @@ export const QUESTION_TYPES = [
 
 export type QuestionType = (typeof QUESTION_TYPES)[number]["value"];
 
+// Kategori responden umum (mode publik).
+export const PUBLIC_CATEGORIES = ["Peserta/Alumni Pelatihan", "ASN Kementerian Agama", "Masyarakat Umum", "Lainnya"];
+
 export function questionNeedsOptions(type: string) {
   return QUESTION_TYPES.find((t) => t.value === type)?.needsOptions ?? false;
 }
@@ -43,6 +46,7 @@ export interface QuestionnaireDef {
   title: string;
   description: string;
   image_url?: string;
+  public_mode?: boolean;
   is_active: boolean;
 }
 

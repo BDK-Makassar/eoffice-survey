@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
       title: body.title,
       description: body.description || "",
       image_url: body.image_url || "",
+      public_mode: !!body.public_mode,
       is_active: body.is_active ?? true,
     });
     return NextResponse.json({ questionnaire: q });
