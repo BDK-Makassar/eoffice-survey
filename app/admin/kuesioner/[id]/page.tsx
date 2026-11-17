@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAdminKey } from "@/lib/useAdminKey";
-import { QUESTION_TYPES, questionNeedsOptions, questionTypeLabel, ikmCategory } from "@/lib/types";
+import { QUESTION_TYPES, questionNeedsOptions, questionTypeLabel, ikmCategory, indicatorRecap, overallIkm } from "@/lib/types";
 import type { QuestionDef } from "@/lib/types";
 
 interface Meta {
@@ -451,15 +451,9 @@ export default function KuesionerDetailPage() {
   );
 }
 
-// Indeks kepuasan keseluruhan = rata-rata nilai per unsur (pertanyaan skala 1–4) x 25.
 function IkmSummary({ results }: { results: { question: QuestionDef; answers: { value: string }[] }[] }) {
-  const avgs = results
-    .filter((r) => r.question.type === "scale_1_4")
-    .map((r) => r.answers.map((a) => Number(a.value)).filter((n) => n >= 1 && n <= 4))
-    .filter((nums) => nums.length)
-    .map((nums) => nums.reduce((a, b) => a + b, 0) / nums.length);
-  if (!avgs.length) return null;
-  const k = ikmCategory(avgs.reduce((a, b) => a + b, 0) / avgs.length);
+  const k = overallIkm(results);
+  if (!k) return null;
   return (
     <div className="rounded-xl border border-brand-200 bg-brand-50 p-5 shadow-sm">
       <h3 className="text-sm font-semibold text-slate-800">Indeks Kepuasan Pengguna</h3>
@@ -467,34 +461,16 @@ function IkmSummary({ results }: { results: { question: QuestionDef; answers: { 
         {k.nilai.toFixed(2)} <span className="text-base font-medium">Mutu {k.mutu} &middot; {k.kinerja}</span>
       </p>
       <p className="mt-2 text-xs text-slate-500">
-        Dari {avgs.length} pertanyaan skala 1–4. Kategori: A 88,31–100 Sangat Baik &middot; B 76,61–88,30 Baik &middot; C
+        Dari {k.unsur} pertanyaan skala 1–4. Kategori: A 88,31–100 Sangat Baik &middot; B 76,61–88,30 Baik &middot; C
         65,00–76,60 Kurang Baik &middot; D 25,00–64,99 Tidak Baik.
       </p>
     </div>
   );
 }
 
-// Rekap per indikator: skala 1–4 -> nilai x25 + mutu; pilihan tunggal -> % jawaban positif (2 opsi teratas, target ≥75%).
 function IndicatorSummary({ results }: { results: { question: QuestionDef; answers: { value: string }[] }[] }) {
-  const groups = new Map<string, { no: number[]; scale: number[]; pos: number; choice: number; text: number }>();
-  results.forEach((r, i) => {
-    const key = r.question.indicator?.trim();
-    if (!key) return;
-    const g = groups.get(key) || { no: [], scale: [], pos: 0, choice: 0, text: 0 };
-    g.no.push(i + 1);
-    if (r.question.type === "scale_1_4") {
-      const nums = r.answers.map((a) => Number(a.value)).filter((n) => n >= 1 && n <= 4);
-      if (nums.length) g.scale.push(nums.reduce((a, b) => a + b, 0) / nums.length);
-    } else if (r.question.type === "single_choice") {
-      const top = (r.question.options || []).slice(0, 2);
-      g.choice += r.answers.length;
-      g.pos += r.answers.filter((a) => top.includes(a.value)).length;
-    } else {
-      g.text += r.answers.filter((a) => a.value.trim()).length;
-    }
-    groups.set(key, g);
-  });
-  if (!groups.size) return null;
+  const rows = indicatorRecap(results);
+  if (!rows.length) return null;
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <h3 className="text-sm font-semibold text-slate-800">Rekap per Indikator</h3>
@@ -507,21 +483,15 @@ function IndicatorSummary({ results }: { results: { question: QuestionDef; answe
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 text-slate-700">
-          {[...groups].map(([name, g]) => {
+          {rows.map((r) => {
             const parts: string[] = [];
-            if (g.scale.length) {
-              const k = ikmCategory(g.scale.reduce((a, b) => a + b, 0) / g.scale.length);
-              parts.push(`${k.nilai.toFixed(2)} (Mutu ${k.mutu}, ${k.kinerja})`);
-            }
-            if (g.choice) {
-              const pct = (g.pos / g.choice) * 100;
-              parts.push(`${pct.toFixed(0)}% positif (${pct >= 75 ? "Tercapai" : "Belum tercapai"})`);
-            }
-            if (g.text) parts.push(`${g.text} masukan`);
+            if (r.nilai !== null) parts.push(`${r.nilai.toFixed(2)} (Mutu ${r.mutu}, ${r.kinerja})`);
+            if (r.positif !== null) parts.push(`${r.positif.toFixed(0)}% positif (${r.positif >= 75 ? "Tercapai" : "Belum tercapai"})`);
+            if (r.masukan.length) parts.push(`${r.masukan.length} masukan`);
             return (
-              <tr key={name}>
-                <td className="py-1.5 pr-3 font-medium">{name}</td>
-                <td className="py-1.5 pr-3">{g.no.join(", ")}</td>
+              <tr key={r.name}>
+                <td className="py-1.5 pr-3 font-medium">{r.name}</td>
+                <td className="py-1.5 pr-3">{r.no.join(", ")}</td>
                 <td className="py-1.5">{parts.join(" · ") || "Belum ada jawaban"}</td>
               </tr>
             );

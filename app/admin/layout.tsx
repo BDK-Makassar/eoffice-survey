@@ -63,11 +63,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: "/admin/kuesioner", label: "Kuesioner" },
     { href: "/admin/users", label: "Pengguna" },
+    { href: "/admin/laporan", label: "Laporan Monev" },
   ];
 
   return (
     <div className="min-h-screen">
-      <nav className="border-b border-slate-200 bg-white">
+      <nav className="border-b border-slate-200 bg-white print:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-6">
             <span className="text-sm font-bold text-slate-900">Admin e-Office</span>
