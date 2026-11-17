@@ -8,21 +8,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Hijau Kemenag + emas, selaras dengan website bdkmakassar.id
         brand: {
-          50: "#eef5ff",
-          100: "#d9e9ff",
-          200: "#b3d3ff",
-          300: "#80b6ff",
-          400: "#4d94ff",
-          500: "#2472f2",
-          600: "#1657c9",
-          700: "#12459c",
-          800: "#123a7c",
-          900: "#0f2f5e",
+          50: "#eef6f2",
+          100: "#d5eadf",
+          200: "#acd4c0",
+          300: "#7cb89c",
+          400: "#4a9a79",
+          500: "#24805f",
+          600: "#0e6b55",
+          700: "#0b5847",
+          800: "#0b4f40",
+          900: "#0a3a30",
         },
+        emas: { 300: "#f0cf7a", 400: "#e8c15a", 500: "#e2b13c", 600: "#c4952a" },
+        ink: "#16302a",
       },
       fontFamily: {
-        sans: ["ui-sans-serif", "system-ui", "Segoe UI", "Roboto", "Arial", "sans-serif"],
+        sans: ["var(--font-jakarta)", "ui-sans-serif", "system-ui", "Segoe UI", "Arial", "sans-serif"],
       },
     },
   },

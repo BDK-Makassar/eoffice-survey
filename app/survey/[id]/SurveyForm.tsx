@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { SCALE_1_4_LABELS, PUBLIC_CATEGORIES } from "@/lib/types";
+import SiteHeader from "../../_components/SiteHeader";
 import type { QuestionDef, UserDef } from "@/lib/types";
 
 interface Meta {
@@ -108,61 +109,82 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
   }
 
   if (loading) {
-    return <main className="p-10 text-center text-sm text-slate-400">Memuat...</main>;
+    return <main className="p-10 text-center text-sm text-slate-400">Memuat kuesioner...</main>;
   }
 
   if (loadError) {
     return (
       <main className="mx-auto max-w-md px-4 py-20 text-center">
-        <p className="text-sm text-slate-500">{loadError}</p>
-        <a href={home} className="mt-3 inline-block text-sm font-medium text-brand-600 hover:underline">
+        <p className="text-sm text-slate-600">{loadError}</p>
+        <a href={home} className="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline">
           Kembali ke daftar kuesioner
         </a>
       </main>
     );
   }
 
+  const nama = meta?.title.replace(/^Survei Kepuasan Pengguna\s+/i, "");
+
   if (step === "done") {
     return (
-      <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 text-center">
-        <div className="rounded-2xl border border-slate-200 bg-white p-10 shadow-sm">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-brand-700">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+      <>
+        <SiteHeader>
+          <h1 className="text-3xl font-extrabold leading-tight tracking-tight">
+            Terima kasih, {selectedUser?.nama ?? publik.nama}
+          </h1>
+          <p className="mt-3 text-[15px] text-brand-100">Penilaian Anda untuk {nama} sudah tersimpan.</p>
+        </SiteHeader>
+        <main className="relative mx-auto -mt-12 max-w-xl px-4 pb-16">
+          <div className="flex items-center gap-4 rounded-2xl bg-white shadow-[0_12px_40px_-12px_rgba(11,79,64,0.35)] ring-1 ring-brand-900/5 p-6">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emas-500 text-brand-900">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <p className="flex-1 text-sm leading-relaxed text-slate-600">
+              Hasil survei dipakai sebagai bahan evaluasi dan perbaikan layanan BDK Makassar.
+            </p>
           </div>
-          <h1 className="text-xl font-semibold text-slate-900">Terima kasih, {selectedUser?.nama ?? publik.nama}!</h1>
-          <p className="mt-2 text-sm text-slate-600">Jawaban Anda untuk &ldquo;{meta?.title}&rdquo; telah tersimpan.</p>
           <a
             href={home}
-            className="mt-6 inline-block w-full rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
+            className="mt-4 block w-full rounded-xl bg-brand-700 py-3 text-center text-[15px] font-bold text-white transition hover:bg-brand-800"
           >
-            Kembali ke Halaman Utama
+            Nilai sistem lainnya
           </a>
-        </div>
-      </main>
+        </main>
+      </>
     );
   }
 
   if (step === "identity") {
     return (
-      <main className="mx-auto max-w-lg px-4 py-14">
-        <p className="text-sm font-medium uppercase tracking-wide text-brand-600">BDK Makassar</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">{meta?.title}</h1>
-        {meta?.description && <p className="mt-2 whitespace-pre-line text-sm text-slate-600">{meta.description}</p>}
-        {meta?.image_url && (
-          <figure className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <img src={meta.image_url} alt={`Tampilan ${meta.title}`} className="w-full" />
-            <figcaption className="px-3 py-2 text-xs text-slate-500">Tampilan sistem yang dinilai</figcaption>
-          </figure>
-        )}
+      <>
+        <SiteHeader>
+          <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">{nama}</h1>
+          <p className="mt-2 text-[15px] text-brand-100">Survei kepuasan pengguna</p>
+        </SiteHeader>
+        <main className="relative mx-auto -mt-12 max-w-xl space-y-6 px-4 pb-16">
+          {meta?.image_url && (
+            <figure className="overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_-12px_rgba(11,79,64,0.35)] ring-1 ring-brand-900/5">
+              <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-3 py-2" aria-hidden>
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+              </div>
+              <img src={meta.image_url} alt={`Tampilan ${nama}`} className="w-full" />
+            </figure>
+          )}
+          {meta?.description && (
+            <p className="whitespace-pre-line text-[15px] leading-relaxed text-slate-600">{meta.description}</p>
+          )}
 
-        {mode === "pegawai" && (
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <label className="text-sm font-medium text-slate-700">Cari nama atau NIP Anda</label>
+          {mode === "pegawai" && (
+            <div className="rounded-2xl bg-white shadow-[0_12px_40px_-12px_rgba(11,79,64,0.35)] ring-1 ring-brand-900/5 p-6 sm:p-7">
+              <h2 className="text-lg font-bold text-ink">Siapa yang mengisi?</h2>
+              <p className="mt-1 text-sm text-slate-500">Cari nama atau NIP Anda.</p>
           <input
             autoFocus
-            className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+            className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-[15px] focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20"
             placeholder="Ketik nama atau NIP..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -181,7 +203,7 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
                   setSelectedUser(u);
                   setStep("form");
                 }}
-                className={`flex w-full flex-col rounded-lg border px-4 py-2.5 text-left text-sm transition ${
+                className={`flex w-full flex-col rounded-xl border px-4 py-3 text-left text-sm transition ${
                   u.has_responded
                     ? "cursor-not-allowed border-green-300 bg-green-50"
                     : "border-slate-200 hover:border-brand-400 hover:bg-brand-50"
@@ -203,106 +225,111 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
               </button>
             ))}
           </div>
-        </div>
-        )}
+            </div>
+          )}
 
-        {mode === "umum" && !meta?.public_mode && (
-          <p className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
-            Kuesioner ini hanya untuk pegawai BDK Makassar.
-          </p>
-        )}
+          {mode === "umum" && !meta?.public_mode && (
+            <p className="rounded-2xl bg-white p-6 text-center text-sm text-slate-600 ring-1 ring-brand-900/5">
+              Kuesioner ini hanya untuk pegawai BDK Makassar.
+            </p>
+          )}
 
-        {mode === "umum" && meta?.public_mode && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSelectedUser(null);
-              setStep("form");
-            }}
-            className="mt-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-          >
-            <p className="text-sm font-semibold text-slate-800">Identitas Responden</p>
-            <p className="mt-0.5 text-xs text-slate-500">Untuk peserta pelatihan, alumni, dan pengunjung.</p>
-            <label className="mt-3 block text-sm font-medium text-slate-700" htmlFor="pub-nama">Nama</label>
-            <input
-              id="pub-nama"
-              autoFocus
-              required
-              maxLength={100}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
-              value={publik.nama}
-              onChange={(e) => setPublik({ ...publik, nama: e.target.value })}
-            />
-            <label className="mt-3 block text-sm font-medium text-slate-700" htmlFor="pub-kategori">Kategori responden</label>
-            <select
-              id="pub-kategori"
-              required
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
-              value={publik.kategori}
-              onChange={(e) => setPublik({ ...publik, kategori: e.target.value })}
+          {mode === "umum" && meta?.public_mode && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setSelectedUser(null);
+                setStep("form");
+              }}
+              className="rounded-2xl bg-white shadow-[0_12px_40px_-12px_rgba(11,79,64,0.35)] ring-1 ring-brand-900/5 p-6 sm:p-7"
             >
-              <option value="">Pilih kategori...</option>
-              {PUBLIC_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <label className="mt-3 block text-sm font-medium text-slate-700" htmlFor="pub-instansi">
-              Instansi/asal <span className="font-normal text-slate-400">(opsional)</span>
-            </label>
-            <input
-              id="pub-instansi"
-              maxLength={150}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
-              value={publik.instansi}
-              onChange={(e) => setPublik({ ...publik, instansi: e.target.value })}
-            />
-            <button
-              type="submit"
-              className="mt-4 w-full rounded-xl bg-brand-600 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
-            >
-              Lanjut Mengisi Kuesioner
-            </button>
-          </form>
-        )}
-      </main>
+              <h2 className="text-lg font-bold text-ink">Identitas responden</h2>
+              <p className="mt-1 text-sm text-slate-500">Isi data singkat berikut sebelum mulai menilai.</p>
+              <label className="mt-4 block text-sm font-semibold text-ink" htmlFor="pub-nama">Nama</label>
+              <input
+                id="pub-nama"
+                autoFocus
+                required
+                maxLength={100}
+                className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-[15px] focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20"
+                value={publik.nama}
+                onChange={(e) => setPublik({ ...publik, nama: e.target.value })}
+              />
+              <label className="mt-4 block text-sm font-semibold text-ink" htmlFor="pub-kategori">Kategori responden</label>
+              <select
+                id="pub-kategori"
+                required
+                className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-[15px] focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20"
+                value={publik.kategori}
+                onChange={(e) => setPublik({ ...publik, kategori: e.target.value })}
+              >
+                <option value="">Pilih kategori...</option>
+                {PUBLIC_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <label className="mt-4 block text-sm font-semibold text-ink" htmlFor="pub-instansi">
+                Instansi/asal <span className="font-normal text-slate-400">(opsional)</span>
+              </label>
+              <input
+                id="pub-instansi"
+                maxLength={150}
+                className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-[15px] focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20"
+                value={publik.instansi}
+                onChange={(e) => setPublik({ ...publik, instansi: e.target.value })}
+              />
+              <button
+                type="submit"
+                className="mt-6 w-full rounded-xl bg-brand-700 py-3 text-[15px] font-bold text-white transition hover:bg-brand-800"
+              >
+                Mulai mengisi
+              </button>
+            </form>
+          )}
+        </main>
+      </>
     );
   }
 
+  const requiredIds = questions.filter((q) => q.required).map((q) => q.id!);
+  const answered = requiredIds.filter((qid) => answers[qid]).length;
+
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
-      <div className="mb-6">
-        <p className="text-sm font-medium uppercase tracking-wide text-brand-600">
-          {selectedUser ? `${selectedUser.nama} · ${selectedUser.jabatan}` : `${publik.nama} · ${publik.kategori}`}
+    <>
+      <SiteHeader wide>
+        <p className="text-sm text-brand-100">
+          {selectedUser ? `${selectedUser.nama}, ${selectedUser.jabatan}` : `${publik.nama}, ${publik.kategori}`}
+          <button onClick={() => setStep("identity")} className="ml-2 font-semibold text-emas-400 hover:underline">
+            Ganti
+          </button>
         </p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-900">{meta?.title}</h1>
-        {meta?.description && <p className="mt-2 whitespace-pre-line text-sm text-slate-600">{meta.description}</p>}
-        {meta?.image_url && (
-          <figure className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <img src={meta.image_url} alt={`Tampilan ${meta.title}`} className="w-full" />
-            <figcaption className="px-3 py-2 text-xs text-slate-500">Tampilan sistem yang dinilai</figcaption>
-          </figure>
-        )}
+        <h1 className="mt-1 text-3xl font-extrabold leading-tight tracking-tight">{nama}</h1>
+      </SiteHeader>
 
-        {questions.some((q) => q.type === "scale_1_4") && (
-          <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
-              Keterangan Skala 1–4
-            </p>
-            <div className="mt-2 grid grid-cols-2 gap-1.5 text-xs text-brand-900 sm:grid-cols-4 sm:gap-2">
-              {SCALE_4.map((s) => (
-                <div key={s.n} className="flex items-center gap-1.5 sm:flex-col sm:items-center sm:gap-1 sm:text-center">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-[11px] font-semibold text-white">
-                    {s.n}
-                  </span>
-                  <span>{s.label}</span>
-                </div>
-              ))}
-            </div>
+      <div className="sticky top-0 z-10 border-b border-brand-100 bg-white/90 backdrop-blur">
+        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-2.5">
+          <div
+            className="h-1.5 flex-1 overflow-hidden rounded-full bg-brand-50"
+            role="progressbar"
+            aria-label="Pertanyaan wajib terjawab"
+            aria-valuemin={0}
+            aria-valuemax={requiredIds.length}
+            aria-valuenow={answered}
+          >
+            <div
+              className="h-full rounded-full bg-emas-500 transition-all"
+              style={{ width: `${requiredIds.length ? (answered / requiredIds.length) * 100 : 0}%` }}
+            />
           </div>
-        )}
+          <span className="shrink-0 text-xs font-semibold text-ink">
+            {answered} dari {requiredIds.length} terjawab
+          </span>
+        </div>
+      </div>
 
+      <main className="relative mx-auto mt-6 max-w-2xl px-4 pb-16">
         {questions.some((q) => q.type === "scale_1_5") && (
-          <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50 p-4">
+          <div className="mb-5 rounded-2xl bg-white p-4 ring-1 ring-brand-900/5">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
               Keterangan Skala 1–5
             </p>
@@ -325,38 +352,50 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
           </div>
         )}
 
-        <button
-          onClick={() => setStep("identity")}
-          className="mt-3 text-xs font-medium text-slate-400 hover:underline"
-        >
-          Bukan Anda? Ganti identitas
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {questions.map((q, idx) => (
-          <section key={q.id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="font-medium text-slate-800">
-              {idx + 1}. {q.label}
-              {q.required && <span className="ml-1 text-red-500">*</span>}
-            </p>
+          <section
+            key={q.id}
+            className={`rounded-2xl bg-white p-5 shadow-[0_6px_24px_-14px_rgba(11,79,64,0.35)] ring-1 transition-shadow sm:p-6 ${
+              answers[q.id!] ? "ring-brand-200" : "ring-brand-900/5"
+            }`}
+          >
+            <div className="flex gap-3">
+              <span
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                  answers[q.id!] ? "bg-brand-700 text-white" : "bg-brand-50 text-brand-700"
+                }`}
+              >
+                {idx + 1}
+              </span>
+              <p className="pt-0.5 text-[15px] font-semibold leading-relaxed text-ink">
+                {q.label}
+                {q.required && <span className="ml-1 text-emas-600" aria-label="wajib">*</span>}
+              </p>
+            </div>
 
             {q.type === "scale_1_4" && (
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {SCALE_4.map((s) => (
-                  <button
-                    type="button"
-                    key={s.n}
-                    onClick={() => setAnswer(q.id!, String(s.n))}
-                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                      answers[q.id!] === String(s.n)
-                        ? "border-brand-600 bg-brand-600 text-white"
-                        : "border-slate-300 bg-white text-slate-600 hover:border-brand-400"
-                    }`}
-                  >
-                    {s.n}. {s.label}
-                  </button>
-                ))}
+              <div role="radiogroup" className="mt-4 grid grid-cols-4 gap-1 rounded-xl bg-brand-50 p-1">
+                {SCALE_4.map((s) => {
+                  const on = answers[q.id!] === String(s.n);
+                  return (
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={on}
+                      key={s.n}
+                      onClick={() => setAnswer(q.id!, String(s.n))}
+                      className={`flex flex-col items-center rounded-lg px-1 py-2.5 text-center transition ${
+                        on ? "bg-brand-700 text-white shadow-sm" : "text-slate-600 hover:bg-white"
+                      }`}
+                    >
+                      <span className={`text-lg font-extrabold leading-none ${on ? "text-emas-400" : "text-brand-700"}`}>
+                        {s.n}
+                      </span>
+                      <span className="mt-1 text-[11px] font-semibold leading-tight sm:text-xs">{s.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
 
@@ -396,13 +435,13 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
                   ))}
                 </select>
               ) : (
-                <div className="mt-3 space-y-2">
+                <div className="mt-4 space-y-2">
                   {(q.options || []).map((opt) => (
                     <label
                       key={opt}
-                      className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-2.5 text-sm transition ${
+                      className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${
                         answers[q.id!] === opt
-                          ? "border-brand-600 bg-brand-50 text-brand-900"
+                          ? "border-brand-600 bg-brand-50 font-semibold text-brand-900"
                           : "border-slate-200 bg-white hover:border-brand-300"
                       }`}
                     >
@@ -419,15 +458,15 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
               ))}
 
             {q.type === "multi_choice" && (
-              <div className="mt-3 space-y-2">
+              <div className="mt-4 space-y-2">
                 {(q.options || []).map((opt) => {
                   const checked = (answers[q.id!] || "").split("||").includes(opt);
                   return (
                     <label
                       key={opt}
-                      className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-2.5 text-sm transition ${
+                      className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${
                         checked
-                          ? "border-brand-600 bg-brand-50 text-brand-900"
+                          ? "border-brand-600 bg-brand-50 font-semibold text-brand-900"
                           : "border-slate-200 bg-white hover:border-brand-300"
                       }`}
                     >
@@ -446,7 +485,7 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
 
             {q.type === "short_text" && (
               <input
-                className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                className="mt-4 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-[15px] focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20"
                 value={answers[q.id!] || ""}
                 onChange={(e) => setAnswer(q.id!, e.target.value)}
               />
@@ -455,7 +494,7 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
             {q.type === "long_text" && (
               <textarea
                 rows={3}
-                className="mt-3 w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                className="mt-4 w-full resize-y rounded-xl border border-slate-300 px-3.5 py-2.5 text-[15px] focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20"
                 value={answers[q.id!] || ""}
                 onChange={(e) => setAnswer(q.id!, e.target.value)}
               />
@@ -464,7 +503,7 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
             {q.type === "number" && (
               <input
                 type="number"
-                className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+                className="mt-4 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-[15px] focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20"
                 value={answers[q.id!] || ""}
                 onChange={(e) => setAnswer(q.id!, e.target.value)}
               />
@@ -479,11 +518,12 @@ export default function SurveyForm({ mode }: { mode: "pegawai" | "umum" }) {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-xl bg-brand-600 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:opacity-60"
+          className="w-full rounded-xl bg-brand-700 py-3.5 text-[15px] font-bold text-white transition hover:bg-brand-800 disabled:opacity-60"
         >
-          {submitting ? "Mengirim..." : "Kirim Jawaban"}
+          {submitting ? "Mengirim..." : "Kirim penilaian"}
         </button>
       </form>
-    </main>
+      </main>
+    </>
   );
 }

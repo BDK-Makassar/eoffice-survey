@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
+
 export const metadata: Metadata = {
-  title: "Kuesioner e-Office | BDK Makassar",
-  description:
-    "Survei evaluasi penggunaan aplikasi e-Office untuk mendukung pekerjaan administratif internal BDK Makassar.",
+  title: "Survei Kepuasan Pengguna | BDK Makassar",
+  description: "Survei kepuasan pengguna sistem informasi Balai Diklat Keagamaan Makassar.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id">
-      <body className="min-h-screen text-slate-800 antialiased">{children}</body>
+    <html lang="id" className={jakarta.variable}>
+      <body className="min-h-screen font-sans text-ink antialiased">{children}</body>
     </html>
   );
 }

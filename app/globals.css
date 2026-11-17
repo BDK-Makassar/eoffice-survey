@@ -7,5 +7,22 @@ html {
 }
 
 body {
-  background-color: #f4f7fb;
+  background-color: #f3f6f4;
+}
+
+:focus-visible {
+  outline: 2px solid #e2b13c;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
