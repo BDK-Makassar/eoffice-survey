@@ -224,11 +224,21 @@ export default function KuesionerDetailPage() {
             </button>
 
             {meta.is_active && (
-              <div className="mt-4 rounded-lg bg-brand-50 px-4 py-3 text-xs text-brand-800">
-                Tautan survei:{" "}
-                <a href={surveyUrl} target="_blank" className="font-medium underline">
-                  {surveyUrl}
-                </a>
+              <div className="mt-4 space-y-1 rounded-lg bg-brand-50 px-4 py-3 text-xs text-brand-800">
+                <p>
+                  Tautan pegawai:{" "}
+                  <a href={surveyUrl} target="_blank" className="font-medium underline">
+                    {surveyUrl}
+                  </a>
+                </p>
+                {meta.public_mode && (
+                  <p>
+                    Tautan peserta/pengunjung:{" "}
+                    <a href={`${surveyUrl}/umum`} target="_blank" className="font-medium underline">
+                      {surveyUrl}/umum
+                    </a>
+                  </p>
+                )}
               </div>
             )}
           </section>
